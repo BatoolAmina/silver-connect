@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🔘 Silver Connect | Elite Care Terminal
 
-## Getting Started
+**Silver Connect** is a premium, production-ready frontend terminal for a secure caregiving ecosystem. It bridges the gap between families and verified healthcare professionals through a refined, role-based digital registry.
 
-First, run the development server:
+This isn’t just a dashboard—it’s a **controlled-access registry** built with intent.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌟 The Vision
+Healthcare platforms shouldn't feel cold or cluttered. Silver Connect uses a **Dossier-style design**, combining deep slate tones and subtle gold accents with fluid motion to create a calm, trustworthy experience. The UI adapts dynamically based on user clearance—because in caregiving, trust is earned.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## 🛠 Core Features
 
-To learn more about Next.js, take a look at the following resources:
+### 🔐 Security & Access Control
+- **Secure Fetch Layer:** A global `secureFetch` wrapper that automates JWT injection and monitors session health on every request.
+- **Session Protection:** Immediate local state purging and gateway redirection upon any unauthorized signal.
+- **RBAC (Role-Based Access Control):** The interface morphs based on your clearance:
+  - **Admin:** The Audit & Control Terminal.
+  - **Helper:** Specialist Dossier Management.
+  - **Client:** Deployment & Booking Hub.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🎨 Design Philosophy
+- **Next.js 15 (App Router):** High-performance routing and modern architecture.
+- **Elite Aesthetic:** A custom Tailwind theme focused on high-contrast typography and intentional spacing.
+- **Fluid Motion:** Smooth, Dossier-style transitions powered by Framer Motion.
+- **Adaptive UI:** Fully responsive experience from mobile terminals to 4K displays.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 💻 Tech Stack
+* **Framework:** Next.js 15+
+* **Styling:** Tailwind CSS
+* **Animations:** Framer Motion
+* **Icons:** Lucide React
+* **State:** React Context API
 
-## Deploy on Vercel
+## 📡 Registry Integration
+The terminal is hardwired to the **Live Silver Connect API** hosted on **Render**.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* **Production Endpoint:** `https://silver-connect-backend.onrender.com`
+* **Operations:** Handles secure handshakes (OAuth), cryptographic identity recovery (SMTP), and real-time dispatch authorization.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## ⚙️ Setup
+
+1. **Clone & Enter:**
+   ```bash
+   git clone [https://github.com/BatoolAmina/silver-connect.git](https://github.com/BatoolAmina/silver-connect.git)
+   cd silver-connect
+    ```
+
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Initialize Development Server:**
+    ```bash
+    npm run dev
+    ```
+
+* **Production Endpoint:** `https://silver-connect-backend.onrender.com`
+
+Built with passion for the caregiving community. 
