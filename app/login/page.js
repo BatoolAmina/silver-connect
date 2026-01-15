@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
-import { ShieldCheck, Lock, Mail, LogIn, Loader2, Zap } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, LogIn, Loader2, Zap, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -17,6 +17,7 @@ export default function LoginPage() {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCheckingSession, setIsCheckingSession] = useState(true);
+    const [showPassword, setShowPassword] = useState(false);
 
     const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -179,7 +180,22 @@ export default function LoginPage() {
                                     </div>
                                     <div className="relative group">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" size={16} />
-                                        <input type="password" name="password" className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-none text-sm font-bold text-slate-900 focus:ring-1 focus:ring-slate-950 outline-none shadow-inner" placeholder="••••••••" value={formData.password} onChange={handleChange} required />
+                                        <input 
+                                            type={showPassword ? "text" : "password"} 
+                                            name="password" 
+                                            className="w-full pl-12 pr-12 py-4 rounded-2xl bg-slate-50 border-none text-sm font-bold text-slate-900 focus:ring-1 focus:ring-slate-950 outline-none shadow-inner" 
+                                            placeholder="••••••••" 
+                                            value={formData.password} 
+                                            onChange={handleChange} 
+                                            required 
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-900 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
                                     </div>
                                 </div>
 

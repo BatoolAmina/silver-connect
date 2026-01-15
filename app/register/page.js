@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
-import { ShieldCheck, ArrowRight, Lock, Mail, User, Zap, Loader2 } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Lock, Mail, User, Zap, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -17,6 +17,10 @@ export default function UnifiedRegisterPage() {
     const [isCheckingSession, setIsCheckingSession] = useState(true);
     const [passwordsMatch, setPasswordsMatch] = useState(true);
     const [status, setStatus] = useState({ type: '', text: '' });
+    
+    // Visibility States
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -189,13 +193,48 @@ export default function UnifiedRegisterPage() {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
+                                    {/* Password Field */}
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Pass-Cipher</label>
-                                        <input name="password" onChange={handleChange} required type="password" placeholder="••••" className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-slate-900 focus:ring-1 focus:ring-slate-950 outline-none shadow-inner" />
+                                        <div className="relative">
+                                            <input 
+                                                name="password" 
+                                                onChange={handleChange} 
+                                                required 
+                                                type={showPassword ? "text" : "password"} 
+                                                placeholder="••••" 
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 pr-12 text-sm font-bold text-slate-900 focus:ring-1 focus:ring-slate-950 outline-none shadow-inner" 
+                                            />
+                                            <button 
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 transition-colors"
+                                            >
+                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
                                     </div>
+
+                                    {/* Confirm Password Field */}
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Verify</label>
-                                        <input name="confirmPassword" onChange={handleChange} required type="password" placeholder="••••" className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-slate-900 focus:ring-1 outline-none shadow-inner ${!passwordsMatch ? 'ring-red-500 ring-1' : 'focus:ring-slate-950'}`} />
+                                        <div className="relative">
+                                            <input 
+                                                name="confirmPassword" 
+                                                onChange={handleChange} 
+                                                required 
+                                                type={showConfirmPassword ? "text" : "password"} 
+                                                placeholder="••••" 
+                                                className={`w-full bg-slate-50 border-none rounded-2xl p-4 pr-12 text-sm font-bold text-slate-900 focus:ring-1 outline-none shadow-inner ${!passwordsMatch ? 'ring-red-500 ring-1' : 'focus:ring-slate-950'}`} 
+                                            />
+                                            <button 
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 transition-colors"
+                                            >
+                                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 

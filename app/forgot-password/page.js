@@ -22,25 +22,44 @@ export default function ForgotPasswordPage() {
         try {
             const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify({ email: email.toLowerCase().trim() })
             });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                setStatus({ 
-                    type: 'success', 
-                    text: "RECOVERY LINK DISPATCHED. CHECK YOUR INBOX." 
-                });
+            const contentType = res.headers.get("content-type");
+            
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const data = await res.json();
+                
+                if (res.ok) {
+                    setStatus({ 
+                        type: 'success', 
+                        text: "RECOVERY LINK DISPATCHED. CHECK YOUR INBOX." 
+                    });
+                } else {
+                    setStatus({ 
+                        type: 'error', 
+                        text: data.message || "RECOVERY REQUEST DENIED." 
+                    });
+                }
             } else {
+                // Handle non-JSON errors (like 404 or 500 HTML pages from Render)
+                const text = await res.text();
+                console.error("Server Error Response:", text);
                 setStatus({ 
                     type: 'error', 
-                    text: data.message || "RECOVERY REQUEST DENIED." 
+                    text: "REGISTRY ERROR: INVALID SERVER RESPONSE." 
                 });
             }
         } catch (err) {
-            setStatus({ type: 'error', text: "REGISTRY OFFLINE. TRY AGAIN LATER." });
+            console.error("Fetch error:", err);
+            setStatus({ 
+                type: 'error', 
+                text: "REGISTRY OFFLINE. CHECK YOUR CONNECTION." 
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -69,10 +88,14 @@ export default function ForgotPasswordPage() {
 
             <section className="py-12 -mt-16 relative z-20 pb-24">
                 <div className="max-w-lg mx-auto px-6">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-slate-100">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-slate-100"
+                    >
                         
-                        <div className="mb-8">
-                            <p className="text-slate-500 text-sm leading-relaxed text-center font-medium">
+                        <div className="mb-8 text-center">
+                            <p className="text-slate-500 text-sm leading-relaxed font-medium">
                                 Enter your registered identity email below. We will dispatch a secure cipher reset link to your node.
                             </p>
                         </div>
@@ -96,7 +119,9 @@ export default function ForgotPasswordPage() {
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Identity Email</label>
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+                                    Identity Email
+                                </label>
                                 <div className="relative group">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={16} />
                                     <input 
