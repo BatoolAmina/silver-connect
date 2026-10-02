@@ -17,34 +17,43 @@ export default function ContactPage() {
 
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contactError, setContactError] = useState('');
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setContactError('');
 
-    emailjs.send(
-      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-      process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-      {
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-      },
-      process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-    )
-    .then(() => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Unable to send your message.');
+      const emailConfig = [
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+      ];
+      if (emailConfig.every(Boolean)) {
+        emailjs.send(...emailConfig.slice(0, 2), formData, emailConfig[2]).catch((error) => {
+          console.error('Support email notification failed:', error);
+        });
+      }
       setSubmitted(true);
-      setIsSubmitting(false);
       setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
-    }, (error) => {
-      alert("Transmission Error: " + error.text);
+    } catch (error) {
+      setContactError(error.message || 'Unable to reach support. Please try again.');
+    } finally {
       setIsSubmitting(false);
-    });
+    }
   };
 
   const fadeInUp = {
@@ -160,6 +169,7 @@ export default function ContactPage() {
                       <input 
                         required
                         type="text" 
+                        maxLength={80}
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
@@ -172,6 +182,7 @@ export default function ContactPage() {
                       <input 
                         required
                         type="email" 
+                        maxLength={254}
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
@@ -239,11 +250,13 @@ export default function ContactPage() {
                         name="message"
                         value={formData.message}
                         onChange={handleChange}
+                        maxLength={3000}
                         rows="4" 
                         placeholder="How can we assist your family?" 
                         className="w-full bg-white border border-slate-200 p-4 rounded-xl text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-slate-900 transition-all placeholder:opacity-30 resize-none"
                       ></textarea>
                     </div>
+                    {contactError && <p role="alert" className="md:col-span-2 text-sm font-medium text-red-700">{contactError}</p>}
                     <div className="md:col-span-2 pt-4">
                       <button 
                         disabled={isSubmitting}
