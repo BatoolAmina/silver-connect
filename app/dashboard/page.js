@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { 
   LogOut, CheckCircle, Mail, Calendar, 
   MapPin, Loader2, Star, MessageSquare, 
-  AlertTriangle, Zap, User, X
+  AlertTriangle, Zap, User, X, Bell, Check
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -19,6 +19,8 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState('active');
 
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -35,6 +37,13 @@ export default function UserDashboard() {
 
       const rRes = await secureFetch(`${API_BASE_URL}/api/reviews/my-reviews`);
       if (rRes && rRes.ok) setReviews(await rRes.json());
+
+      const nRes = await secureFetch(`${API_BASE_URL}/api/notifications/my`);
+      if (nRes && nRes.ok) {
+        const notificationData = await nRes.json();
+        setNotifications(notificationData.notifications || []);
+        setUnreadCount(notificationData.unreadCount || 0);
+      }
     } catch (err) {
       console.error("Registry Sync Error:", err);
     } finally {
@@ -104,6 +113,29 @@ export default function UserDashboard() {
     }
   };
 
+  const cancelBooking = async (bookingId) => {
+    if (!window.confirm('Cancel this care visit request?')) return;
+
+    try {
+      const res = await secureFetch(`${API_BASE_URL}/api/bookings/${bookingId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'cancelled', note: 'Cancelled by care recipient' })
+      });
+      if (res && res.ok) await fetchData();
+    } catch (err) {
+      alert('Unable to cancel this booking. Please try again.');
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    const res = await secureFetch(`${API_BASE_URL}/api/notifications/read-all`, { method: 'PATCH' });
+    if (res && res.ok) {
+      const readAt = new Date().toISOString();
+      setNotifications((current) => current.map((notification) => ({ ...notification, readAt })));
+      setUnreadCount(0);
+    }
+  };
+
   if (loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-[#F9F6EE]">
       <Loader2 className="w-10 h-10 text-[#D4AF37] animate-spin mb-4" />
@@ -153,10 +185,10 @@ export default function UserDashboard() {
                 <span className="text-xs font-black text-[#D4AF37] uppercase tracking-widest block mb-1">Operational Flow</span>
                 <h2 className="text-3xl font-serif uppercase tracking-tighter text-slate-950 leading-none">Registry signals</h2>
              </div>
-             <div className="flex bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-inner">
-                {['active', 'history', 'reviews'].map((tab) => (
-                  <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-950 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900'}`}>
-                    {tab}
+             <div className="flex max-w-full overflow-x-auto bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-inner">
+                {['active', 'history', 'reviews', 'updates'].map((tab) => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} className={`whitespace-nowrap px-4 md:px-8 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-950 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900'}`}>
+                    {tab === 'updates' ? `Updates${unreadCount ? ` (${unreadCount})` : ''}` : tab}
                   </button>
                 ))}
              </div>
@@ -183,16 +215,40 @@ export default function UserDashboard() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 mb-6">
+                       <div className="grid grid-cols-2 gap-3 mb-6">
                          <div className="bg-white p-4 rounded-2xl border border-slate-50">
-                            <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Deployment</p>
+                           <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Visit Date</p>
                             <p className="text-[11px] font-bold text-slate-900">{new Date(booking.date).toLocaleDateString()}</p>
                          </div>
                          <div className="bg-white p-4 rounded-2xl border border-slate-50 shadow-inner">
-                            <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Signal ID</p>
+                           <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Care Service</p>
+                           <p className="text-[11px] font-bold text-slate-900">{booking.serviceType || 'Companionship'}</p>
+                         </div>
+                         <div className="bg-white p-4 rounded-2xl border border-slate-50 shadow-inner">
+                           <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Preferred Time</p>
+                           <p className="text-[11px] font-bold text-slate-900">{booking.preferredTime || 'Morning'} · {booking.durationHours || 2}h</p>
+                         </div>
+                         <div className="bg-white p-4 rounded-2xl border border-slate-50 shadow-inner">
+                           <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Signal ID</p>
                             <p className="text-[11px] font-bold text-slate-900 uppercase">LKO-{booking._id.slice(-6).toUpperCase()}</p>
                          </div>
                       </div>
+
+                       {booking.emergencyContactName && (
+                        <p className="mb-5 text-xs text-slate-500">Emergency contact: <span className="font-bold text-slate-800">{booking.emergencyContactName}</span>{booking.emergencyContactPhone ? ` · ${booking.emergencyContactPhone}` : ''}</p>
+                       )}
+
+                      {booking.statusHistory?.length > 0 && (
+                        <ol aria-label="Recent booking updates" className="mb-5 space-y-2 border-l-2 border-slate-100 pl-4">
+                          {booking.statusHistory.slice(-3).map((event, index) => (
+                            <li key={`${event.status}-${event.changedAt}-${index}`} className="text-[10px] text-slate-500">
+                              <span className="font-bold uppercase text-slate-700">{event.status}</span>
+                              <span> · {new Date(event.changedAt).toLocaleString()}</span>
+                              {event.note && <span className="block mt-0.5">{event.note}</span>}
+                            </li>
+                          ))}
+                        </ol>
+                      )}
 
                       <div className="mt-auto">
                         {booking.status === 'completed' && !alreadyReviewed ? (
@@ -206,6 +262,9 @@ export default function UserDashboard() {
                         ) : null}
                         {booking.status === 'accepted' && (
                           <div className="w-full py-4 bg-emerald-50 text-emerald-600 rounded-xl text-[9px] font-black uppercase text-center border border-emerald-100">Specialist Deployed</div>
+                        )}
+                        {(booking.status === 'pending' || booking.status === 'accepted') && (
+                          <button onClick={() => cancelBooking(booking._id)} className="w-full mt-3 py-3 text-xs font-bold text-red-600 border border-red-100 rounded-xl hover:bg-red-50 transition-colors">Cancel visit</button>
                         )}
                       </div>
                     </div>
@@ -244,7 +303,7 @@ export default function UserDashboard() {
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed italic bg-white/50 p-4 rounded-2xl border border-slate-50 relative">
                       <MessageSquare size={12} className="absolute -top-1 -left-1 text-[#D4AF37] opacity-20" />
-                      "{rev.reviewText}"
+                      &quot;{rev.reviewText}&quot;
                     </p>
                   </div>
                 )) : (
@@ -253,6 +312,25 @@ export default function UserDashboard() {
                     <p className="text-xs font-black uppercase tracking-widest">No audit signals found in registry.</p>
                   </div>
                 )}
+              </motion.div>
+            )}
+
+            {activeTab === 'updates' && (
+              <motion.div key="updates" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                <div className="flex justify-between items-center gap-4">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Booking updates</h3>
+                  {unreadCount > 0 && <button onClick={markAllNotificationsRead} className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-950"><Check size={14} /> Mark all read</button>}
+                </div>
+                {notifications.length > 0 ? notifications.map((notification) => (
+                  <article key={notification._id} className={`flex gap-4 p-5 rounded-2xl border ${notification.readAt ? 'bg-white border-slate-100' : 'bg-amber-50/60 border-amber-100'}`}>
+                    <Bell size={17} className={notification.readAt ? 'text-slate-400 mt-0.5' : 'text-amber-600 mt-0.5'} />
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-slate-900">{notification.title}</h4>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">{notification.message}</p>
+                      <time className="mt-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">{new Date(notification.createdAt).toLocaleString()}</time>
+                    </div>
+                  </article>
+                )) : <div className="py-16 text-center text-sm text-slate-400">No updates yet.</div>}
               </motion.div>
             )}
           </AnimatePresence>
