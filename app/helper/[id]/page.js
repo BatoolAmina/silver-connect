@@ -104,7 +104,7 @@ export default function HelperDetails({ params }) {
             <Header />
             
             <section className="h-[45vh] bg-slate-950 relative overflow-hidden flex items-center justify-center">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#020617_100%)] opacity-70" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#0f172a_0%,#020617_100%)] opacity-70" />
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10 text-center">
                     <h1 className="text-4xl md:text-5xl font-serif text-white uppercase tracking-tighter">Book Your Request</h1>
                 </motion.div>
@@ -113,11 +113,11 @@ export default function HelperDetails({ params }) {
             <div className="max-w-6xl mx-auto px-6 -mt-30 pb-20 relative z-20">
                 <div className="flex flex-col lg:flex-row gap-10 items-start">
                     
-                    <aside className="w-full lg:w-[360px] lg:sticky lg:top-24">
+                    <aside className="w-full lg:w-90 lg:sticky lg:top-24">
                         <div className="bg-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl border border-white/5 relative overflow-hidden">
                             <div className="relative z-10 flex flex-col items-center text-center">
                                 <div className="relative mb-6">
-                                    <div className="w-24 h-24 rounded-[2rem] bg-slate-900 flex items-center justify-center text-[#D4AF37] text-4xl font-serif font-bold border border-white/10">
+                                    <div className="w-24 h-24 rounded-4xl bg-slate-900 flex items-center justify-center text-[#D4AF37] text-4xl font-serif font-bold border border-white/10">
                                         {helper?.name?.charAt(0)}
                                     </div>
                                     <div className="absolute -bottom-1 -right-1 bg-emerald-500 p-2 rounded-xl border-4 border-slate-950">
@@ -154,10 +154,10 @@ export default function HelperDetails({ params }) {
                     </aside>
 
                     <div className="flex-1 w-full">
-                        <section className="bg-white rounded-[3rem] p-8 md:p-12 shadow-xl border border-slate-100 min-h-[500px]">
+                        <section className="bg-white rounded-[3rem] p-8 md:p-12 shadow-xl border border-slate-100 min-h-125">
                             {isOwnProfile ? (
                                 <div className="h-full flex flex-col items-center justify-center text-center py-20">
-                                    <div className="w-16 h-16 bg-[#F9F6EE] rounded-[1.5rem] flex items-center justify-center text-[#D4AF37] mb-6">
+                                    <div className="w-16 h-16 bg-[#F9F6EE] rounded-3xl flex items-center justify-center text-[#D4AF37] mb-6">
                                         <Info size={28} />
                                     </div>
                                     <h3 className="text-xl font-serif uppercase text-slate-950">Terminal Restricted</h3>

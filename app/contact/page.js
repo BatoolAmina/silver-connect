@@ -81,7 +81,7 @@ export default function ContactPage() {
               alt="Contact Support"
             />
           </motion.div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#020617_90%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_90%)]" />
         </div>
 
         <div className="max-w-5xl mx-auto px-6 relative z-10">

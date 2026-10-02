@@ -170,11 +170,11 @@ export default function AdminTerminal() {
   return (
     <main className="min-h-screen bg-[#F9F6EE] font-sans">
       <Header />
-      <section className="h-[80px] lg:h-[10vh] bg-slate-950" />
+      <section className="h-20 lg:h-[10vh] bg-slate-950" />
       
       <div className="flex flex-col lg:flex-row min-h-screen relative">
         
-        <div className="lg:hidden bg-slate-900 p-4 flex justify-between items-center sticky top-0 z-[60] border-b border-white/5">
+        <div className="lg:hidden bg-slate-900 p-4 flex justify-between items-center sticky top-0 z-60 border-b border-white/5">
             <div className="flex items-center gap-3">
                 <Shield className="text-[#D4AF37]" size={20} />
                 <span className="text-white text-[10px] font-black uppercase tracking-widest">Admin Terminal</span>
@@ -185,7 +185,7 @@ export default function AdminTerminal() {
         </div>
 
         <aside className={`
-            fixed lg:sticky top-0 lg:top-[10vh] left-0 h-full lg:h-[90vh] w-80 bg-slate-950 z-[70] 
+            fixed lg:sticky top-0 lg:top-[10vh] left-0 h-full lg:h-[90vh] w-80 bg-slate-950 z-70
             transition-transform duration-500 ease-in-out transform
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             flex flex-col p-8 border-r border-white/5
@@ -233,9 +233,9 @@ export default function AdminTerminal() {
             <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               
               {activeTab === 'users' && (
-                <div className="bg-white rounded-[2rem] lg:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+                <div className="bg-white rounded-4xl lg:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[600px] lg:min-w-full">
+                    <table className="w-full text-left min-w-150 lg:min-w-full">
                         <thead className="bg-slate-50/50 border-b">
                         <tr>
                             <th className="px-6 lg:px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Identified Member</th>
@@ -335,12 +335,12 @@ export default function AdminTerminal() {
                 <div className="grid grid-cols-1 gap-8">
                   {data.pending.length > 0 ? (
                     data.pending.map((app) => (
-                      <div key={app._id} className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 border border-slate-100 flex flex-col gap-8 relative overflow-hidden shadow-xl hover:shadow-2xl transition-all">
+                      <div key={app._id} className="bg-white rounded-4xl lg:rounded-[3rem] p-6 lg:p-10 border border-slate-100 flex flex-col gap-8 relative overflow-hidden shadow-xl hover:shadow-2xl transition-all">
                         <div className="absolute top-0 left-0 w-2 h-full bg-amber-400" />
                         
                         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8">
                           <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 bg-slate-950 rounded-[2rem] flex items-center justify-center text-[#D4AF37] text-3xl font-serif font-bold shadow-xl">
+                            <div className="w-20 h-20 bg-slate-950 rounded-4xl flex items-center justify-center text-[#D4AF37] text-3xl font-serif font-bold shadow-xl">
                               {app.name.charAt(0)}
                             </div>
                             <div>
@@ -366,10 +366,10 @@ export default function AdminTerminal() {
                           <AdminCapsule label="Aadhar ID" value={app.aadhar || 'Not Provided'} icon={<Fingerprint size={14}/>}/>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-50/80 p-6 rounded-[2rem] border border-slate-100">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-50/80 p-6 rounded-4xl border border-slate-100">
                           <div className="lg:col-span-8">
                             <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Professional Statement</span>
-                            <p className="text-sm text-slate-600 leading-relaxed font-medium italic italic">&quot;{app.summary || app.bio || 'No statement provided.'}&quot;</p>
+                            <p className="text-sm text-slate-600 leading-relaxed font-medium italic">&quot;{app.summary || app.bio || 'No statement provided.'}&quot;</p>
                           </div>
                           <div className="lg:col-span-4 flex flex-col justify-center border-l border-slate-200 pl-6">
                             <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-3">Verification Dossier</span>
@@ -395,12 +395,12 @@ export default function AdminTerminal() {
                 <div className="grid grid-cols-1 gap-8">
                   {data.verified.length > 0 ? (
                     data.verified.map((helper) => (
-                      <div key={helper._id} className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 border border-slate-100 flex flex-col gap-8 relative overflow-hidden shadow-xl hover:shadow-2xl transition-all">
+                      <div key={helper._id} className="bg-white rounded-4xl lg:rounded-[3rem] p-6 lg:p-10 border border-slate-100 flex flex-col gap-8 relative overflow-hidden shadow-xl hover:shadow-2xl transition-all">
                         <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500" />
                         
                         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8">
                           <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 bg-slate-950 rounded-[2rem] flex items-center justify-center text-[#D4AF37] text-3xl font-serif font-bold shadow-xl">
+                            <div className="w-20 h-20 bg-slate-950 rounded-4xl flex items-center justify-center text-[#D4AF37] text-3xl font-serif font-bold shadow-xl">
                               {helper.name.charAt(0)}
                             </div>
                             <div>
@@ -429,7 +429,7 @@ export default function AdminTerminal() {
                           <AdminCapsule label="Specialty" value={helper.specialty} icon={<Activity size={14}/>}/>
                         </div>
 
-                        <div className="bg-slate-50/80 p-6 rounded-[2rem] border border-slate-100">
+                        <div className="bg-slate-50/80 p-6 rounded-4xl border border-slate-100">
                           <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Registry Bio</span>
                           <p className="text-sm text-slate-600 leading-relaxed font-medium">
                             &quot;{helper.summary || helper.bio || 'Verified professional specialized in healthcare assistance.'}&quot;
@@ -455,7 +455,7 @@ export default function AdminTerminal() {
                     <button onClick={exportBookings} disabled={!visibleBookings.length} className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-slate-950 text-white rounded-xl text-xs font-bold disabled:opacity-40"><Download size={15} /> Export filtered CSV</button>
                   </div>
                   {visibleBookings.length ? visibleBookings.map(book => (
-                    <div key={book._id} className="bg-white p-6 lg:p-8 rounded-[1.5rem] lg:rounded-[2.5rem] border border-slate-100 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-l-4 border-l-slate-950">
+                    <div key={book._id} className="bg-white p-6 lg:p-8 rounded-3xl lg:rounded-[2.5rem] border border-slate-100 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-l-4 border-l-slate-950">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 lg:gap-10 flex-1 w-full">
                         <div className="px-5 py-3 bg-[#F9F6EE] rounded-xl text-center shadow-inner w-full sm:w-auto">
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Signal REF</p>
@@ -511,9 +511,9 @@ export default function AdminTerminal() {
 
       <AnimatePresence>
         {auditItem && (
-          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-6 overflow-y-auto">
+          <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 lg:p-6 overflow-y-auto">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAuditItem(null)} className="fixed inset-0 bg-slate-950/95 backdrop-blur-xl" />
-            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative bg-white rounded-[2.5rem] lg:rounded-[4rem] w-full max-w-2xl p-8 lg:p-12 shadow-2xl border border-slate-100 z-[1001] my-8">
+            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative bg-white rounded-[2.5rem] lg:rounded-[4rem] w-full max-w-2xl p-8 lg:p-12 shadow-2xl border border-slate-100 z-1001 my-8">
               <div className="flex justify-between items-start mb-8 lg:mb-10 border-b border-slate-50 pb-6 lg:pb-8">
                 <div>
                   <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest block mb-1.5">Registry Dossier Audit</span>
@@ -522,12 +522,12 @@ export default function AdminTerminal() {
                 <button onClick={() => setAuditItem(null)} className="p-3 bg-slate-100 rounded-full hover:bg-slate-950 hover:text-white transition-all"><X size={20}/></button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 mb-8 lg:mb-10">
-                <div className="bg-[#F9F6EE] p-6 lg:p-8 rounded-2xl lg:rounded-[2rem] border border-slate-100">
+                <div className="bg-[#F9F6EE] p-6 lg:p-8 rounded-2xl lg:rounded-4xl border border-slate-100">
                   <p className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Client Identity</p>
                   <p className="text-base lg:text-lg font-bold text-slate-950 uppercase mb-1">{auditItem.user?.name}</p>
                   <p className="text-[10px] text-slate-500 lowercase truncate">{auditItem.user?.email || auditItem.seniorEmail}</p>
                 </div>
-                <div className="bg-[#FDFCF0] p-6 lg:p-8 rounded-2xl lg:rounded-[2rem] border border-slate-100 border-l-[6px] border-l-[#D4AF37]">
+                <div className="bg-[#FDFCF0] p-6 lg:p-8 rounded-2xl lg:rounded-4xl border border-slate-100 border-l-[6px] border-l-[#D4AF37]">
                   <p className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Deployed Specialist</p>
                   <p className="text-base lg:text-lg font-bold text-slate-950 uppercase mb-1">{auditItem.helperName}</p>
                   <p className="text-[10px] text-slate-500 lowercase truncate">{auditItem.helperEmail}</p>
@@ -537,13 +537,13 @@ export default function AdminTerminal() {
                 <div className="flex items-center gap-4 text-slate-900 bg-slate-50 p-5 lg:p-6 rounded-xl lg:rounded-2xl text-[10px] lg:text-[11px] uppercase font-black tracking-widest border border-slate-100">
                   <MapPin size={18} className="text-[#D4AF37]"/> {auditItem.address}
                 </div>
-                <div className="bg-slate-900 p-6 lg:p-8 rounded-[1.5rem] lg:rounded-[2.5rem] text-xs lg:text-[13px] text-white/70 italic leading-relaxed shadow-2xl relative overflow-hidden">
+                <div className="bg-slate-900 p-6 lg:p-8 rounded-3xl lg:rounded-[2.5rem] text-xs lg:text-[13px] text-white/70 italic leading-relaxed shadow-2xl relative overflow-hidden">
                   <Globe className="absolute -bottom-10 -right-10 opacity-5" size={120} />
                   <span className="text-[9px] font-black text-white uppercase block mb-2 opacity-50 tracking-widest font-sans not-italic">Signal Intel:</span>
                   &quot;{auditItem.notes || 'Standard operational guidelines observed.'}&quot;
                 </div>
               </div>
-              <button onClick={() => setAuditItem(null)} className="w-full mt-8 lg:mt-10 py-5 lg:py-6 bg-slate-950 text-white rounded-2xl lg:rounded-[2rem] text-[10px] font-black uppercase tracking-[0.5em] hover:bg-[#D4AF37] hover:text-slate-950 transition-all shadow-2xl">Close Dossier</button>
+              <button onClick={() => setAuditItem(null)} className="w-full mt-8 lg:mt-10 py-5 lg:py-6 bg-slate-950 text-white rounded-2xl lg:rounded-4xl text-[10px] font-black uppercase tracking-[0.5em] hover:bg-[#D4AF37] hover:text-slate-950 transition-all shadow-2xl">Close Dossier</button>
             </motion.div>
           </div>
         )}

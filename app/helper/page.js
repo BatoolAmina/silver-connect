@@ -105,10 +105,10 @@ export default function HelperDashboard() {
       <Header />
       
       <section className="bg-slate-950 pt-32 pb-20 px-6 relative overflow-hidden">
-        <div className="max-w-[1200px] mx-auto relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
+        <div className="max-w-300 mx-auto relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="flex items-center gap-6">
             <div className="relative group">
-              <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border border-white/10 flex items-center justify-center text-[#D4AF37] text-4xl font-serif font-bold shadow-2xl transition-transform group-hover:scale-105 duration-500">
+              <div className="w-24 h-24 rounded-4xl bg-slate-900 border border-white/10 flex items-center justify-center text-[#D4AF37] text-4xl font-serif font-bold shadow-2xl transition-transform group-hover:scale-105 duration-500">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-emerald-500 p-2 rounded-xl border-4 border-slate-950">
@@ -138,7 +138,7 @@ export default function HelperDashboard() {
         </div>
       </section>
 
-      <section className="max-w-[1200px] mx-auto px-6 -mt-10 relative z-20 pb-24">
+      <section className="max-w-300 mx-auto px-6 -mt-10 relative z-20 pb-24">
         <div className="bg-white rounded-[3rem] p-8 md:p-12 shadow-2xl border border-slate-100">
           
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 border-b border-slate-50 pb-8">

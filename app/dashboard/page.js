@@ -148,7 +148,7 @@ export default function UserDashboard() {
       <Header />
 
       <section className="bg-slate-950 pt-32 pb-20 px-6 relative overflow-hidden">
-        <div className="max-w-[1400px] mx-auto relative z-10 flex flex-col lg:flex-row justify-between items-center gap-8">
+        <div className="max-w-350 mx-auto relative z-10 flex flex-col lg:flex-row justify-between items-center gap-8">
             <div className="flex items-center gap-6">
               <div className="relative">
                 <div className="w-24 h-24 rounded-2xl bg-slate-900 border-2 border-white/10 flex items-center justify-center text-[#D4AF37] text-4xl font-serif font-bold shadow-2xl">
@@ -159,7 +159,7 @@ export default function UserDashboard() {
                 </div>
               </div>
               <div>
-                <span className="text-[#D4AF37] text-xs font-black uppercase tracking-widest mb-1 block tracking-[0.3em]">Authorized Member</span>
+                <span className="text-[#D4AF37] text-xs font-black uppercase mb-1 block tracking-[0.3em]">Authorized Member</span>
                 <h1 className="text-4xl md:text-5xl font-serif text-white uppercase tracking-tighter leading-none">{user?.name}</h1>
                 <div className="mt-4 bg-white/5 text-white/70 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest inline-flex items-center gap-2 border border-white/10">
                    <Mail size={12} className="text-[#D4AF37]" /> {user?.email}
@@ -177,8 +177,8 @@ export default function UserDashboard() {
         </div>
       </section>
 
-      <section className="max-w-[1400px] mx-auto px-6 -mt-8 relative z-20 pb-20">
-        <div className="bg-white rounded-[3rem] p-6 md:p-12 shadow-xl border border-slate-100 min-h-[500px]">
+      <section className="max-w-350 mx-auto px-6 -mt-8 relative z-20 pb-20">
+        <div className="bg-white rounded-[3rem] p-6 md:p-12 shadow-xl border border-slate-100 min-h-125">
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6 border-b border-slate-50 pb-8">
              <div>
@@ -339,7 +339,7 @@ export default function UserDashboard() {
 
       <AnimatePresence>
         {selectedBooking && (
-          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-1000 flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedBooking(null)} className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" />
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white rounded-[3rem] w-full max-w-xl p-10 border border-slate-100 shadow-2xl">
               <div className="flex justify-between items-center mb-8 border-b pb-6">
@@ -362,9 +362,9 @@ export default function UserDashboard() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Statement of Service</label>
-                  <textarea required rows="4" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Provide specific feedback on care standards..." className="w-full bg-[#F9F6EE] border-none rounded-[2rem] p-6 text-xs font-medium text-slate-600 focus:ring-2 focus:ring-[#D4AF37] outline-none shadow-inner" />
+                  <textarea required rows="4" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Provide specific feedback on care standards..." className="w-full bg-[#F9F6EE] border-none rounded-4xl p-6 text-xs font-medium text-slate-600 focus:ring-2 focus:ring-[#D4AF37] outline-none shadow-inner" />
                 </div>
-                <button disabled={isSubmittingReview} type="submit" className="w-full bg-slate-950 text-white py-6 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.6em] shadow-xl hover:bg-[#D4AF37] hover:text-slate-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
+                <button disabled={isSubmittingReview} type="submit" className="w-full bg-slate-950 text-white py-6 rounded-4xl font-black uppercase text-[11px] tracking-[0.6em] shadow-xl hover:bg-[#D4AF37] hover:text-slate-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
                   {isSubmittingReview ? <Loader2 className="animate-spin" size={18}/> : "Authorize Data Log"}
                 </button>
               </form>
