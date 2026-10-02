@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { 
   Calendar, Star, MapPin, Clock, 
   ShieldCheck, LogOut,
-  Loader2, Zap, Phone, User, Mail
+  Loader2, Zap, Phone, User, Mail, Bell, Check
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -19,6 +19,8 @@ export default function HelperDashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ bookings: [] });
   const [reviews, setReviews] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState('incoming');
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -36,6 +38,13 @@ export default function HelperDashboard() {
           const reviewsData = await rRes.json();
           setReviews(reviewsData);
         }
+      }
+
+      const nRes = await secureFetch(`${API_BASE_URL}/api/notifications/my`);
+      if (nRes && nRes.ok) {
+        const notificationData = await nRes.json();
+        setNotifications(notificationData.notifications || []);
+        setUnreadCount(notificationData.unreadCount || 0);
       }
     } catch (err) {
       console.error("Fetch Error:", err);
@@ -72,6 +81,15 @@ export default function HelperDashboard() {
       if (res && res.ok) await fetchHelperData();
     } catch (err) { 
       alert("Action failed."); 
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    const res = await secureFetch(`${API_BASE_URL}/api/notifications/read-all`, { method: 'PATCH' });
+    if (res && res.ok) {
+      const readAt = new Date().toISOString();
+      setNotifications((current) => current.map((notification) => ({ ...notification, readAt })));
+      setUnreadCount(0);
     }
   };
 
@@ -125,14 +143,14 @@ export default function HelperDashboard() {
           
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 border-b border-slate-50 pb-8">
             <h2 className="text-2xl font-serif uppercase tracking-tight text-slate-950">Registry Terminal</h2>
-            <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 shadow-inner">
-              {['incoming', 'history', 'reviews'].map((tab) => (
+            <div className="flex max-w-full overflow-x-auto bg-slate-50 p-1.5 rounded-2xl border border-slate-100 shadow-inner">
+              {['incoming', 'history', 'reviews', 'updates'].map((tab) => (
                 <button 
                   key={tab} 
                   onClick={() => setActiveTab(tab)} 
-                  className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-950 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`whitespace-nowrap px-4 md:px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-950 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
                 >
-                  {tab === 'incoming' ? 'Active Signals' : tab === 'history' ? 'Registry History' : 'Performance Audits'}
+                  {tab === 'incoming' ? 'Active Signals' : tab === 'history' ? 'Registry History' : tab === 'updates' ? `Updates${unreadCount ? ` (${unreadCount})` : ''}` : 'Performance Audits'}
                 </button>
               ))}
             </div>
@@ -158,14 +176,29 @@ export default function HelperDashboard() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <InfoCard icon={<Calendar size={14}/>} label="Deployment Date" value={new Date(booking.date).toLocaleDateString()} />
+                          <InfoCard icon={<Zap size={14}/>} label="Care Service" value={booking.serviceType || 'Companionship'} />
+                          <InfoCard icon={<Clock size={14}/>} label="Visit Window" value={`${booking.preferredTime || 'Morning'} · ${booking.durationHours || 2}h`} />
                           <InfoCard icon={<MapPin size={14}/>} label="Operation Zone" value={booking.address} />
                           <InfoCard icon={<Phone size={14}/>} label="Contact Vector" value={booking.phone} />
+                          {booking.emergencyContactName && <InfoCard icon={<Phone size={14}/>} label="Emergency Contact" value={`${booking.emergencyContactName}${booking.emergencyContactPhone ? ` · ${booking.emergencyContactPhone}` : ''}`} />}
                         </div>
 
                         <div className="bg-white/80 p-5 rounded-2xl border border-slate-100 text-xs text-slate-600 leading-relaxed italic shadow-inner">
                           <MessageSquare size={12} className="inline mr-2 opacity-30" />
-                          "{booking.notes || "Standard care directives logged."}"
+                          &quot;{booking.notes || 'Standard care directives logged.'}&quot;
                         </div>
+
+                        {booking.statusHistory?.length > 0 && (
+                          <ol aria-label="Recent booking updates" className="space-y-2 border-l-2 border-slate-200 pl-4">
+                            {booking.statusHistory.slice(-3).map((event, index) => (
+                              <li key={`${event.status}-${event.changedAt}-${index}`} className="text-[10px] text-slate-500">
+                                <span className="font-bold uppercase text-slate-700">{event.status}</span>
+                                <span> · {new Date(event.changedAt).toLocaleString()}</span>
+                                {event.note && <span className="block mt-0.5">{event.note}</span>}
+                              </li>
+                            ))}
+                          </ol>
+                        )}
                       </div>
 
                       <div className="flex flex-col justify-center gap-3 md:w-48">
@@ -221,12 +254,31 @@ export default function HelperDashboard() {
                       </div>
                     </div>
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 text-[13px] text-slate-600 italic leading-relaxed shadow-inner">
-                      "{rev.reviewText}"
+                      &quot;{rev.reviewText}&quot;
                     </div>
                   </div>
                 )) : (
                   <EmptySignal label="No Performance Audits Found" />
                 )}
+              </motion.div>
+            )}
+
+            {activeTab === 'updates' && (
+              <motion.div key="updates" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                <div className="flex justify-between items-center gap-4">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Booking updates</h3>
+                  {unreadCount > 0 && <button onClick={markAllNotificationsRead} className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-950"><Check size={14} /> Mark all read</button>}
+                </div>
+                {notifications.length > 0 ? notifications.map((notification) => (
+                  <article key={notification._id} className={`flex gap-4 p-5 rounded-2xl border ${notification.readAt ? 'bg-white border-slate-100' : 'bg-amber-50/60 border-amber-100'}`}>
+                    <Bell size={17} className={notification.readAt ? 'text-slate-400 mt-0.5' : 'text-amber-600 mt-0.5'} />
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-slate-900">{notification.title}</h4>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">{notification.message}</p>
+                      <time className="mt-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">{new Date(notification.createdAt).toLocaleString()}</time>
+                    </div>
+                  </article>
+                )) : <div className="py-16 text-center text-sm text-slate-400">No updates yet.</div>}
               </motion.div>
             )}
           </AnimatePresence>
