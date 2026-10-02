@@ -26,7 +26,8 @@ export default function HelperDetails({ params }) {
     const [todayDate, setTodayDate] = useState('');
 
     const [bookingData, setBookingData] = useState({
-        date: '', phone: '', address: '', notes: ''
+        date: '', phone: '', address: '', notes: '', serviceType: 'Companionship',
+        preferredTime: 'Morning', durationHours: '2', emergencyContactName: '', emergencyContactPhone: ''
     });
 
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -71,10 +72,6 @@ export default function HelperDetails({ params }) {
                 method: 'POST',
                 body: JSON.stringify({ 
                     helperId: helper._id, 
-                    helperName: helper.name,
-                    helperEmail: helper.email,
-                    seniorName: currentUser.name,
-                    seniorEmail: currentUser.email,
                     ...bookingData 
                 })
             });
@@ -200,6 +197,27 @@ export default function HelperDetails({ params }) {
                                             </div>
                                         </div>
 
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Care Service</label>
+                                                <select value={bookingData.serviceType} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => setBookingData({...bookingData, serviceType: e.target.value})}>
+                                                    {['Companionship', 'Personal care', 'Meal preparation', 'Mobility support', 'Medication reminders', 'Transportation'].map((service) => <option key={service}>{service}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Preferred Time</label>
+                                                <select value={bookingData.preferredTime} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => setBookingData({...bookingData, preferredTime: e.target.value})}>
+                                                    {['Morning', 'Afternoon', 'Evening'].map((time) => <option key={time}>{time}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Visit Duration</label>
+                                                <select value={bookingData.durationHours} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => setBookingData({...bookingData, durationHours: e.target.value})}>
+                                                    {[1, 2, 3, 4, 6, 8, 12].map((hours) => <option key={hours} value={hours}>{hours} {hours === 1 ? 'hour' : 'hours'}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+
                                         <div className="space-y-1.5">
                                             <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Target Address</label>
                                             <input type="text" required placeholder="Specific location" className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => setBookingData({...bookingData, address: e.target.value})} />
@@ -208,6 +226,17 @@ export default function HelperDetails({ params }) {
                                         <div className="space-y-1.5">
                                             <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Deployment Directives (Notes)</label>
                                             <textarea rows="4" required placeholder="Any specific medical requirements or care notes..." className="w-full bg-[#F9F6EE]/50 border-none rounded-2xl p-5 text-sm font-medium focus:ring-1 focus:ring-slate-950 outline-none leading-relaxed" onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}></textarea>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Emergency Contact Name</label>
+                                                <input type="text" maxLength={80} placeholder="Optional" className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" value={bookingData.emergencyContactName} onChange={(e) => setBookingData({...bookingData, emergencyContactName: e.target.value})} />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Emergency Contact Phone</label>
+                                                <input type="tel" maxLength={30} placeholder="Optional" className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" value={bookingData.emergencyContactPhone} onChange={(e) => setBookingData({...bookingData, emergencyContactPhone: e.target.value})} />
+                                            </div>
                                         </div>
 
                                         <button type="submit" disabled={isSubmitting} className="w-full bg-slate-950 text-white font-black py-5 rounded-2xl uppercase tracking-[0.5em] text-xs shadow-xl hover:bg-[#D4AF37] hover:text-slate-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
