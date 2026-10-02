@@ -7,7 +7,8 @@ import {
   Users, ShieldCheck, Fingerprint,  FileText, Trash2, 
   Search, Mail, UserRoundCheck, 
   ShieldAlert, Activity, MapPin, 
-  Phone, Zap, X, Shield, Globe, LogOut, Menu
+  Phone, Zap, X, Shield, Globe, LogOut, Menu, BarChart3, Download
+  , Inbox, Check, ExternalLink
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -16,10 +17,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function AdminTerminal() {
   const router = useRouter();
   const { secureFetch, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [data, setData] = useState({ users: [], pending: [], verified: [], messages: [], bookings: [] });
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
+  const [data, setData] = useState({ users: [], pending: [], verified: [], messages: [], bookings: [], stats: {} });
   const [auditItem, setAuditItem] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -34,12 +36,13 @@ export default function AdminTerminal() {
         return result.data || result; 
       };
 
-      const [allUsers, pendingHelpers, verifiedHelpers, messages, bookings] = await Promise.all([
+      const [allUsers, pendingHelpers, verifiedHelpers, messages, bookings, adminStats] = await Promise.all([
         fetchJson(`${API_BASE_URL}/api/auth/admin/users`),
         fetchJson(`${API_BASE_URL}/api/auth/admin/pending-helpers`),
         fetchJson(`${API_BASE_URL}/api/auth/verified-helpers`),
         fetchJson(`${API_BASE_URL}/api/contact`),
-        fetchJson(`${API_BASE_URL}/api/admin/all-bookings`)
+        fetchJson(`${API_BASE_URL}/api/admin/all-bookings`),
+        fetchJson(`${API_BASE_URL}/api/admin/stats`)
       ]);
 
       setData({ 
@@ -47,7 +50,8 @@ export default function AdminTerminal() {
         pending: Array.isArray(pendingHelpers) ? pendingHelpers : [], 
         verified: Array.isArray(verifiedHelpers) ? verifiedHelpers : [], 
         messages: Array.isArray(messages) ? messages : [], 
-        bookings: Array.isArray(bookings) ? bookings : [] 
+        bookings: Array.isArray(bookings) ? bookings : [],
+        stats: adminStats.stats || {}
       });
     } catch (err) {
       console.error("Critical System Failure:", err);
@@ -91,12 +95,68 @@ export default function AdminTerminal() {
     }
   };
 
+  const markContactRead = async (messageId) => {
+    const res = await secureFetch(`${API_BASE_URL}/api/contact/${messageId}/read`, { method: 'PATCH' });
+    if (res && res.ok) {
+      setData((current) => ({
+        ...current,
+        messages: current.messages.map((message) => message._id === messageId ? { ...message, status: 'read' } : message)
+      }));
+    }
+  };
+
+  const deleteContact = async (messageId) => {
+    if (!window.confirm('Delete this support message?')) return;
+    const res = await secureFetch(`${API_BASE_URL}/api/contact/${messageId}`, { method: 'DELETE' });
+    if (res && res.ok) {
+      setData((current) => ({ ...current, messages: current.messages.filter((message) => message._id !== messageId) }));
+    }
+  };
+
   const navigation = [
+    { id: 'overview', label: 'Overview', Icon: BarChart3, count: data.bookings.filter((booking) => booking.status === 'pending').length },
     { id: 'users', label: 'Users', Icon: Users, count: data.users.length },
     { id: 'pending', label: 'Pending Helpers', Icon: ShieldAlert, count: data.pending.length },
     { id: 'verified', label: 'Active Helpers', Icon: UserRoundCheck, count: data.verified.length },
     { id: 'bookings', label: 'Bookings', Icon: Activity, count: data.bookings.length },
+    { id: 'messages', label: 'Support Inbox', Icon: Inbox, count: data.messages.filter((message) => message.status === 'unread').length },
   ];
+
+  const bookingStatusCounts = data.bookings.reduce((counts, booking) => {
+    counts[booking.status] = (counts[booking.status] || 0) + 1;
+    return counts;
+  }, {});
+  const completionRate = data.bookings.length
+    ? Math.round(((bookingStatusCounts.completed || 0) / data.bookings.length) * 100)
+    : 0;
+  const visibleBookings = data.bookings.filter((booking) => {
+    const matchesStatus = bookingStatusFilter === 'all' || booking.status === bookingStatusFilter;
+    const searchable = [booking.user?.name, booking.helperName, booking.helper?.name, booking.serviceType, booking.address, booking._id]
+      .filter(Boolean).join(' ').toLowerCase();
+    return matchesStatus && searchable.includes(searchTerm.toLowerCase());
+  });
+
+  const exportBookings = () => {
+    const columns = ['Reference', 'Requester', 'Helper', 'Service', 'Date', 'Preferred time', 'Duration hours', 'Status'];
+    const escapeCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const rows = visibleBookings.map((booking) => [
+      booking._id,
+      booking.user?.name || booking.seniorName,
+      booking.helper?.name || booking.helperName,
+      booking.serviceType || 'Companionship',
+      new Date(booking.date).toLocaleDateString(),
+      booking.preferredTime || 'Morning',
+      booking.durationHours || 2,
+      booking.status
+    ]);
+    const csv = [columns, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `silver-connect-bookings-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) return (
     <div className="h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
@@ -209,6 +269,68 @@ export default function AdminTerminal() {
                 </div>
               )}
 
+              {activeTab === 'overview' && (
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <AdminMetric label="Care recipients" value={data.stats.totalUsers ?? data.users.filter((user) => user.role === 'user').length} detail="Registered accounts" icon={<Users size={18} />} />
+                    <AdminMetric label="Verified helpers" value={data.verified.length} detail={`${data.pending.length} applications waiting`} icon={<ShieldCheck size={18} />} />
+                    <AdminMetric label="Visit requests" value={data.stats.totalBookings ?? data.bookings.length} detail={`${bookingStatusCounts.pending || 0} awaiting a response`} icon={<Activity size={18} />} />
+                    <AdminMetric label="Completion rate" value={`${completionRate}%`} detail={`${bookingStatusCounts.completed || 0} completed visits`} icon={<BarChart3 size={18} />} />
+                  </div>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                    <section className="xl:col-span-2 bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm">
+                      <div className="flex justify-between items-start mb-7">
+                        <div>
+                          <h3 className="text-lg font-serif uppercase text-slate-950">Booking pipeline</h3>
+                          <p className="mt-1 text-xs text-slate-400">Current status across all visit requests</p>
+                        </div>
+                        <Activity size={18} className="text-[#D4AF37]" />
+                      </div>
+                      <div className="space-y-5">
+                        {['pending', 'accepted', 'completed', 'rejected', 'cancelled'].map((status) => {
+                          const count = bookingStatusCounts[status] || 0;
+                          const share = data.bookings.length ? (count / data.bookings.length) * 100 : 0;
+                          const color = status === 'completed' ? 'bg-emerald-500' : status === 'rejected' || status === 'cancelled' ? 'bg-rose-400' : status === 'accepted' ? 'bg-sky-500' : 'bg-amber-400';
+                          return (
+                            <div key={status}>
+                              <div className="flex justify-between mb-2 text-xs">
+                                <span className="font-bold capitalize text-slate-700">{status}</span>
+                                <span className="text-slate-400">{count}</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-slate-100 overflow-hidden"><div className={`h-full ${color} rounded-full`} style={{ width: `${share}%` }} /></div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+
+                    <section className="xl:col-span-3 bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm">
+                      <div className="flex justify-between items-start mb-6">
+                        <div>
+                          <h3 className="text-lg font-serif uppercase text-slate-950">Recent visits</h3>
+                          <p className="mt-1 text-xs text-slate-400">Latest requests across the service</p>
+                        </div>
+                        <button onClick={() => setActiveTab('bookings')} className="text-xs font-bold text-slate-500 hover:text-slate-950">View all</button>
+                      </div>
+                      {data.bookings.slice(0, 6).length ? (
+                        <div className="divide-y divide-slate-100">
+                          {data.bookings.slice(0, 6).map((booking) => (
+                            <button key={booking._id} onClick={() => { setAuditItem(booking); setActiveTab('bookings'); }} className="w-full py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left hover:bg-slate-50 px-2 rounded-lg">
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-slate-900 truncate">{booking.user?.name || booking.seniorName || 'Member'} <span className="font-normal text-slate-400">with</span> {booking.helper?.name || booking.helperName || 'Helper'}</p>
+                                <p className="mt-1 text-xs text-slate-400">{booking.serviceType || 'Companionship'} · {new Date(booking.date).toLocaleDateString()}</p>
+                              </div>
+                              <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-slate-600">{booking.status}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : <p className="py-12 text-center text-sm text-slate-400">No visit requests yet.</p>}
+                    </section>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'pending' && (
                 <div className="grid grid-cols-1 gap-8">
                   {data.pending.length > 0 ? (
@@ -247,7 +369,7 @@ export default function AdminTerminal() {
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-50/80 p-6 rounded-[2rem] border border-slate-100">
                           <div className="lg:col-span-8">
                             <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Professional Statement</span>
-                            <p className="text-sm text-slate-600 leading-relaxed font-medium italic italic">"{app.summary || app.bio || 'No statement provided.'}"</p>
+                            <p className="text-sm text-slate-600 leading-relaxed font-medium italic italic">&quot;{app.summary || app.bio || 'No statement provided.'}&quot;</p>
                           </div>
                           <div className="lg:col-span-4 flex flex-col justify-center border-l border-slate-200 pl-6">
                             <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-3">Verification Dossier</span>
@@ -310,7 +432,7 @@ export default function AdminTerminal() {
                         <div className="bg-slate-50/80 p-6 rounded-[2rem] border border-slate-100">
                           <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Registry Bio</span>
                           <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                            "{helper.summary || helper.bio || 'Verified professional specialized in healthcare assistance.'}"
+                            &quot;{helper.summary || helper.bio || 'Verified professional specialized in healthcare assistance.'}&quot;
                           </p>
                         </div>
                       </div>
@@ -324,8 +446,15 @@ export default function AdminTerminal() {
               )}
 
               {activeTab === 'bookings' && (
-                <div className="grid grid-cols-1 gap-4 lg:gap-6">
-                  {data.bookings.map(book => (
+                <div className="space-y-5">
+                  <div className="flex flex-col sm:flex-row justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-100">
+                    <label className="sr-only" htmlFor="booking-status-filter">Filter bookings by status</label>
+                    <select id="booking-status-filter" value={bookingStatusFilter} onChange={(event) => setBookingStatusFilter(event.target.value)} className="w-full sm:w-56 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700">
+                      {['all', 'pending', 'accepted', 'completed', 'rejected', 'cancelled'].map((status) => <option key={status} value={status}>{status === 'all' ? 'All statuses' : status}</option>)}
+                    </select>
+                    <button onClick={exportBookings} disabled={!visibleBookings.length} className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-slate-950 text-white rounded-xl text-xs font-bold disabled:opacity-40"><Download size={15} /> Export filtered CSV</button>
+                  </div>
+                  {visibleBookings.length ? visibleBookings.map(book => (
                     <div key={book._id} className="bg-white p-6 lg:p-8 rounded-[1.5rem] lg:rounded-[2.5rem] border border-slate-100 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-l-4 border-l-slate-950">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 lg:gap-10 flex-1 w-full">
                         <div className="px-5 py-3 bg-[#F9F6EE] rounded-xl text-center shadow-inner w-full sm:w-auto">
@@ -343,7 +472,35 @@ export default function AdminTerminal() {
                       </div>
                       <button onClick={() => setAuditItem(book)} className="w-full md:w-auto px-8 py-4 bg-slate-950 text-white rounded-xl lg:rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#D4AF37] hover:text-slate-950 shadow-xl transition-all">Audit</button>
                     </div>
-                  ))}
+                  )) : <div className="py-16 text-center bg-white rounded-2xl border border-slate-100 text-sm text-slate-400">No bookings match these filters.</div>}
+                </div>
+              )}
+
+              {activeTab === 'messages' && (
+                <div className="space-y-4">
+                  {data.messages.length ? data.messages.filter((message) => {
+                    const searchable = [message.name, message.email, message.subject, message.message].join(' ').toLowerCase();
+                    return searchable.includes(searchTerm.toLowerCase());
+                  }).map((message) => (
+                    <article key={message._id} className={`bg-white p-6 md:p-8 rounded-2xl border shadow-sm ${message.status === 'unread' ? 'border-amber-200' : 'border-slate-100'}`}>
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-lg font-serif uppercase text-slate-950">{message.subject || 'General inquiry'}</h3>
+                            {message.status === 'unread' && <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-wider">Unread</span>}
+                          </div>
+                          <p className="mt-2 text-sm font-bold text-slate-700">{message.name} <span className="font-normal text-slate-400">· {message.email}</span></p>
+                          <time className="mt-1 block text-xs text-slate-400">{new Date(message.createdAt).toLocaleString()}</time>
+                        </div>
+                        <div className="flex flex-wrap gap-2 shrink-0">
+                          {message.status === 'unread' && <button onClick={() => markContactRead(message._id)} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200"><Check size={14} /> Mark read</button>}
+                          <a href={`mailto:${encodeURIComponent(message.email)}?subject=${encodeURIComponent(`Re: ${message.subject || 'Your Silver Connect inquiry'}`)}`} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-950 text-white text-xs font-bold hover:bg-slate-700"><ExternalLink size={14} /> Reply</a>
+                          <button onClick={() => deleteContact(message._id)} aria-label={`Delete message from ${message.name}`} className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
+                        </div>
+                      </div>
+                      <p className="mt-6 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{message.message}</p>
+                    </article>
+                  )) : <div className="py-16 text-center bg-white rounded-2xl border border-slate-100 text-sm text-slate-400">Your support inbox is empty.</div>}
                 </div>
               )}
 
@@ -383,7 +540,7 @@ export default function AdminTerminal() {
                 <div className="bg-slate-900 p-6 lg:p-8 rounded-[1.5rem] lg:rounded-[2.5rem] text-xs lg:text-[13px] text-white/70 italic leading-relaxed shadow-2xl relative overflow-hidden">
                   <Globe className="absolute -bottom-10 -right-10 opacity-5" size={120} />
                   <span className="text-[9px] font-black text-white uppercase block mb-2 opacity-50 tracking-widest font-sans not-italic">Signal Intel:</span>
-                  "{auditItem.notes || "Standard operational guidelines observed."}"
+                  &quot;{auditItem.notes || 'Standard operational guidelines observed.'}&quot;
                 </div>
               </div>
               <button onClick={() => setAuditItem(null)} className="w-full mt-8 lg:mt-10 py-5 lg:py-6 bg-slate-950 text-white rounded-2xl lg:rounded-[2rem] text-[10px] font-black uppercase tracking-[0.5em] hover:bg-[#D4AF37] hover:text-slate-950 transition-all shadow-2xl">Close Dossier</button>
@@ -404,6 +561,19 @@ function AdminCapsule({ label, value, icon }) {
         <span className="text-[#D4AF37]">{icon}</span> {label}
       </p>
       <p className="text-[10px] lg:text-[11px] font-bold text-slate-950 uppercase truncate leading-none tracking-tight">{value || "NOT RECORDED"}</p>
+    </div>
+  );
+}
+
+function AdminMetric({ label, value, detail, icon }) {
+  return (
+    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</span>
+        <span className="text-[#D4AF37]">{icon}</span>
+      </div>
+      <p className="mt-5 text-3xl font-serif text-slate-950">{value}</p>
+      <p className="mt-1 text-xs text-slate-500">{detail}</p>
     </div>
   );
 }
