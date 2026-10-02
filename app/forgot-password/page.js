@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
             <Header />
 
             <header className="relative h-[30vh] flex items-center justify-center bg-slate-950 pt-12 text-center px-6">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#020617_100%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#0f172a_0%,#020617_100%)]" />
                 <div className="max-w-4xl mx-auto relative z-10">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                         <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-white/5 border border-white/10">
