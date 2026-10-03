@@ -93,7 +93,7 @@ export default function ServicesPage() {
               alt="Services"
             />
           </motion.div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#020617_90%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_90%)]" />
         </div>
 
         <div className="max-w-5xl mx-auto px-6 relative z-10 text-center">
@@ -140,7 +140,7 @@ export default function ServicesPage() {
                 <h4 className="text-lg font-serif mb-3 text-slate-900 font-bold uppercase tracking-widest group-hover:text-slate-700 transition-colors">
                   {service.title}
                 </h4>
-                <p className="text-slate-500 text-xs leading-relaxed mb-6 max-w-[240px]">
+                <p className="text-slate-500 text-xs leading-relaxed mb-6 max-w-60">
                   {service.desc}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2 mt-auto">
@@ -178,13 +178,13 @@ export default function ServicesPage() {
                 >
                   <div className="text-[#D4AF37] mb-2">{process.icon}</div>
                   <h4 className="text-white text-xs font-bold uppercase tracking-widest">{process.title}</h4>
-                  <p className="text-slate-500 text-xs leading-relaxed max-w-[180px]">{process.desc}</p>
+                  <p className="text-slate-500 text-xs leading-relaxed max-w-45">{process.desc}</p>
                 </motion.div>
               ))}
             </div>
           </motion.div>
         </div>
-        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[20px_20px]"></div>
       </section>
 
       <section className="py-20 bg-white flex justify-center">
