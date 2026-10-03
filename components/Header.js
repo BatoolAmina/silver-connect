@@ -74,10 +74,10 @@ const Header = () => {
   const navLinks = getNavLinks();
 
   return (
-    <nav className={`fixed w-full z-[100] transition-all duration-500 ${
+    <nav className={`fixed w-full z-100 transition-all duration-500 ${
       scrolled ? 'bg-[#FDFCF0]/95 backdrop-blur-md py-4 shadow-md' : 'bg-transparent py-8'
     }`}>
-      <div className="max-w-[1600px] mx-auto px-8 flex items-center justify-between">
+      <div className="max-w-400 mx-auto px-8 flex items-center justify-between">
         
         <Link href="/">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-4 group cursor-pointer">
@@ -159,7 +159,7 @@ const Header = () => {
           <motion.div 
             initial={{ opacity: 0, x: '100%' }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 bg-[#FDFCF0] z-[101] lg:hidden flex flex-col p-8"
+            className="fixed inset-0 bg-[#FDFCF0] z-101 lg:hidden flex flex-col p-8"
           >
             <div className="flex justify-between items-center mb-12">
                <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Registry Menu</span>
@@ -190,16 +190,16 @@ const Header = () => {
                         <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest">{user.role} Clearances</span>
                     </div>
                   </div>
-                  <button onClick={handleLogoutAction} className="w-full bg-red-500 text-white p-6 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-transform">
+                  <button onClick={handleLogoutAction} className="w-full bg-red-500 text-white p-6 rounded-4xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-transform">
                     <LogOut size={20} /> Terminate Session
                   </button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4">
-                  <Link href="/register/helper" onClick={() => setIsOpen(false)} className="w-full border-2 border-slate-950 p-6 rounded-[2rem] font-black uppercase text-xs tracking-widest text-center active:scale-95 transition-transform">
+                  <Link href="/register/helper" onClick={() => setIsOpen(false)} className="w-full border-2 border-slate-950 p-6 rounded-4xl font-black uppercase text-xs tracking-widest text-center active:scale-95 transition-transform">
                     Join as Helper
                   </Link>
-                  <Link href="/login" onClick={() => setIsOpen(false)} className="w-full bg-slate-950 text-white p-6 rounded-[2rem] font-black uppercase text-xs tracking-widest text-center shadow-xl active:scale-95 transition-transform">
+                  <Link href="/login" onClick={() => setIsOpen(false)} className="w-full bg-slate-950 text-white p-6 rounded-4xl font-black uppercase text-xs tracking-widest text-center shadow-xl active:scale-95 transition-transform">
                     Member Login
                   </Link>
                 </div>
