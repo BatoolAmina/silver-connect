@@ -1,6 +1,7 @@
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import AssistantWidget from "@/components/AssistantWidget";
 
 const inter = Inter({ 
   subsets: ["latin"], 
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
       <body className="antialiased bg-[#F9F6EE]">
         <AuthProvider>
           {children}
+          <AssistantWidget />
         </AuthProvider>
       </body>
     </html>
