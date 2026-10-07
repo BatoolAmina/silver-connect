@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,9 +25,6 @@ export default function AdminTerminal() {
   const [data, setData] = useState({ users: [], pending: [], verified: [], messages: [], bookings: [], stats: {} });
   const [auditItem, setAuditItem] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
   const fetchData = async () => {
     try {
       const fetchJson = async (url) => {
