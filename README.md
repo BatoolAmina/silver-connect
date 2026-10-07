@@ -60,6 +60,8 @@ The terminal is hardwired to the **Live Silver Connect API** hosted on **Render*
     npm run dev
     ```
 
+The frontend uses `http://localhost:5000` as its local API default. Set `NEXT_PUBLIC_API_BASE_URL` to the backend origin when deploying or using a different local backend.
+
 * **Production Endpoint:** `https://silver-connect-backend.onrender.com`
 
 Built with passion for the caregiving community. 
