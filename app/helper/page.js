@@ -5,6 +5,7 @@ import { API_BASE_URL } from '@/lib/api';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useLiveUpdates } from '@/lib/useLiveUpdates';
 import { 
   Calendar, Star, MapPin, Clock, 
   ShieldCheck, LogOut,
@@ -16,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function HelperDashboard() {
   const router = useRouter();
-  const { secureFetch, logout } = useAuth();
+  const { secureFetch, logout, setUser: setAuthUser } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ bookings: [] });
@@ -63,6 +64,34 @@ export default function HelperDashboard() {
       setLoading(false);
     }
   }, [secureFetch]);
+
+  const refreshLiveUpdates = useCallback(async () => {
+    try {
+      const [bookingsResponse, notificationsResponse, profileResponse] = await Promise.all([
+        secureFetch(`${API_BASE_URL}/api/bookings/helper-tasks`),
+        secureFetch(`${API_BASE_URL}/api/notifications/my`),
+        secureFetch(`${API_BASE_URL}/api/auth/me`)
+      ]);
+
+      if (bookingsResponse?.ok) setData({ bookings: await bookingsResponse.json() });
+      if (notificationsResponse?.ok) {
+        const notificationData = await notificationsResponse.json();
+        setNotifications(notificationData.notifications || []);
+        setUnreadCount(notificationData.unreadCount || 0);
+      }
+      if (profileResponse?.ok) {
+        const currentUser = await profileResponse.json();
+        setUser(currentUser);
+        setAuthUser(currentUser);
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        if (currentUser.role !== 'helper' || !currentUser.isVerified) {
+          router.replace('/dashboard');
+        }
+      }
+    } catch (error) {
+      console.error('Unable to refresh live helper updates:', error);
+    }
+  }, [router, secureFetch, setAuthUser]);
 
   const publishAvailability = async (event) => {
     event.preventDefault();
@@ -120,6 +149,8 @@ export default function HelperDashboard() {
     setUser(parsedUser);
     fetchHelperData();
   }, [fetchHelperData, router]);
+
+  useLiveUpdates(refreshLiveUpdates, Boolean(user));
 
   const updateStatus = async (id, status) => {
     try {
