@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,9 +28,6 @@ export default function ProfilePage() {
     specialty: '',
     experience: ''
   });
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
   useEffect(() => {
     const fetchProfile = async () => {
       const res = await secureFetch(`${API_BASE_URL}/api/auth/me`);
@@ -49,7 +47,7 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [secureFetch, API_BASE_URL]);
+  }, [secureFetch]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
