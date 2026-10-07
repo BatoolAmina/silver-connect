@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 
 import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
@@ -19,6 +20,7 @@ export default function HelperDetails({ params }) {
     const router = useRouter();
     const { secureFetch } = useAuth();
     const [helper, setHelper] = useState(null);
+    const [openSlots, setOpenSlots] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,11 +29,8 @@ export default function HelperDetails({ params }) {
 
     const [bookingData, setBookingData] = useState({
         date: '', phone: '', address: '', notes: '', serviceType: 'Companionship',
-        preferredTime: 'Morning', durationHours: '2', emergencyContactName: '', emergencyContactPhone: ''
+        preferredTime: '', durationHours: '2', emergencyContactName: '', emergencyContactPhone: ''
     });
-
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         const token = localStorage.getItem('token');
@@ -52,6 +51,10 @@ export default function HelperDetails({ params }) {
                 
                 if (result.success) {
                     setHelper(result.data);
+                    const availabilityResponse = await fetch(`${API_BASE_URL}/api/availability/${id}`);
+                    if (!availabilityResponse.ok) throw new Error('Availability could not be loaded.');
+                    const availabilityData = await availabilityResponse.json();
+                    setOpenSlots(availabilityData.slots);
                 } else {
                     setMessage({ type: 'error', text: "SPECIALIST DATA NOT FOUND." });
                 }
@@ -62,7 +65,7 @@ export default function HelperDetails({ params }) {
             }
         };
         fetchHelperFullProfile();
-    }, [id, API_BASE_URL, router]);
+    }, [id, router]);
 
     const handleBooking = async (e) => {
         e.preventDefault();
@@ -98,6 +101,7 @@ export default function HelperDetails({ params }) {
     );
 
     const isOwnProfile = currentUser?._id === helper?._id;
+    const dateSlots = openSlots.filter((slot) => slot.date.slice(0, 10) === bookingData.date);
 
     return (
         <main className="min-h-screen bg-[#F9F6EE] font-sans selection:bg-[#D4AF37]">
@@ -189,7 +193,10 @@ export default function HelperDetails({ params }) {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-1.5">
                                                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Engagement Date</label>
-                                                <input type="date" required min={todayDate} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => setBookingData({...bookingData, date: e.target.value})} />
+                                                <input type="date" required min={todayDate} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => {
+                                                    const nextSlots = openSlots.filter((slot) => slot.date.slice(0, 10) === e.target.value);
+                                                    setBookingData({...bookingData, date: e.target.value, preferredTime: nextSlots[0]?.preferredTime || ''});
+                                                }} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Contact Signal (Phone)</label>
@@ -206,8 +213,9 @@ export default function HelperDetails({ params }) {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Preferred Time</label>
-                                                <select value={bookingData.preferredTime} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => setBookingData({...bookingData, preferredTime: e.target.value})}>
-                                                    {['Morning', 'Afternoon', 'Evening'].map((time) => <option key={time}>{time}</option>)}
+                                                <select required value={bookingData.preferredTime} disabled={!dateSlots.length} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none disabled:opacity-50" onChange={(e) => setBookingData({...bookingData, preferredTime: e.target.value})}>
+                                                    {!dateSlots.length && <option value="">No open windows</option>}
+                                                    {dateSlots.map((slot) => <option key={slot._id} value={slot.preferredTime}>{slot.preferredTime}</option>)}
                                                 </select>
                                             </div>
                                             <div className="space-y-1.5">
@@ -239,7 +247,8 @@ export default function HelperDetails({ params }) {
                                             </div>
                                         </div>
 
-                                        <button type="submit" disabled={isSubmitting} className="w-full bg-slate-950 text-white font-black py-5 rounded-2xl uppercase tracking-[0.5em] text-xs shadow-xl hover:bg-[#D4AF37] hover:text-slate-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
+                                        {!openSlots.length && <p className="text-sm text-slate-500">This helper has not published any upcoming visit windows.</p>}
+                                        <button type="submit" disabled={isSubmitting || !dateSlots.length || !bookingData.preferredTime} className="w-full bg-slate-950 text-white font-black py-5 rounded-2xl uppercase tracking-[0.5em] text-xs shadow-xl hover:bg-[#D4AF37] hover:text-slate-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
                                             {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : <Send size={16}/>}
                                             Authorize Dispatch
                                         </button>
