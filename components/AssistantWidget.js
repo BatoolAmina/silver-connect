@@ -1,11 +1,9 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 
 import { useState } from 'react';
 import { LoaderCircle, MessageCircle, Send, Sparkles, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-
 const welcomeMessage = {
   role: 'model',
   content: 'Hello, I can help you explore Silver Connect services and understand how bookings work. What would you like to know?',
