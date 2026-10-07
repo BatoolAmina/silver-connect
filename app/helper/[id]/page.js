@@ -193,9 +193,9 @@ export default function HelperDetails({ params }) {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-1.5">
                                                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Engagement Date</label>
-                                                <input type="date" required min={todayDate} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => {
+                                                <input type="date" required min={todayDate} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" value={bookingData.date} onChange={(e) => {
                                                     const nextSlots = openSlots.filter((slot) => slot.date.slice(0, 10) === e.target.value);
-                                                    setBookingData({...bookingData, date: e.target.value, preferredTime: nextSlots[0]?.preferredTime || ''});
+                                                    setBookingData({...bookingData, date: e.target.value, preferredTime: nextSlots[0]?.preferredTime || bookingData.preferredTime || 'Morning'});
                                                 }} />
                                             </div>
                                             <div className="space-y-1.5">
@@ -213,9 +213,11 @@ export default function HelperDetails({ params }) {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Preferred Time</label>
-                                                <select required value={bookingData.preferredTime} disabled={!dateSlots.length} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none disabled:opacity-50" onChange={(e) => setBookingData({...bookingData, preferredTime: e.target.value})}>
-                                                    {!dateSlots.length && <option value="">No open windows</option>}
-                                                    {dateSlots.map((slot) => <option key={slot._id} value={slot.preferredTime}>{slot.preferredTime}</option>)}
+                                                <select required value={bookingData.preferredTime || 'Morning'} className="w-full bg-[#F9F6EE]/50 border-none rounded-xl p-4 text-sm font-bold focus:ring-1 focus:ring-slate-950 outline-none" onChange={(e) => setBookingData({...bookingData, preferredTime: e.target.value})}>
+                                                    {['Morning', 'Afternoon', 'Evening'].map((time) => {
+                                                        const isPublished = dateSlots.some((slot) => slot.preferredTime === time);
+                                                        return <option key={time} value={time}>{time}{isPublished ? ' · Available' : ''}</option>;
+                                                    })}
                                                 </select>
                                             </div>
                                             <div className="space-y-1.5">
@@ -247,8 +249,8 @@ export default function HelperDetails({ params }) {
                                             </div>
                                         </div>
 
-                                        {!openSlots.length && <p className="text-sm text-slate-500">This helper has not published any upcoming visit windows.</p>}
-                                        <button type="submit" disabled={isSubmitting || !dateSlots.length || !bookingData.preferredTime} className="w-full bg-slate-950 text-white font-black py-5 rounded-2xl uppercase tracking-[0.5em] text-xs shadow-xl hover:bg-[#D4AF37] hover:text-slate-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
+                                        <p className="text-sm text-slate-500">Published times are marked available. You can still request any date and time; the helper will confirm your request.</p>
+                                        <button type="submit" disabled={isSubmitting || !bookingData.date || !bookingData.preferredTime} className="w-full bg-slate-950 text-white font-black py-5 rounded-2xl uppercase tracking-[0.5em] text-xs shadow-xl hover:bg-[#D4AF37] hover:text-slate-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
                                             {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : <Send size={16}/>}
                                             Authorize Dispatch
                                         </button>
