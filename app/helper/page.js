@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '@/lib/api';
+
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -22,10 +24,13 @@ export default function HelperDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState('incoming');
+  const [availabilitySlots, setAvailabilitySlots] = useState([]);
+  const [slotDate, setSlotDate] = useState('');
+  const [slotTime, setSlotTime] = useState('Morning');
+  const [slotError, setSlotError] = useState('');
+  const [slotSubmitting, setSlotSubmitting] = useState(false);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
-  const fetchHelperData = async () => {
+  const fetchHelperData = useCallback(async () => {
     try {
       const bRes = await secureFetch(`${API_BASE_URL}/api/bookings/helper-tasks`);
       if (bRes && bRes.ok) {
@@ -46,10 +51,54 @@ export default function HelperDashboard() {
         setNotifications(notificationData.notifications || []);
         setUnreadCount(notificationData.unreadCount || 0);
       }
+
+      const aRes = await secureFetch(`${API_BASE_URL}/api/availability/mine`);
+      if (aRes && aRes.ok) {
+        const availabilityData = await aRes.json();
+        setAvailabilitySlots(availabilityData.slots);
+      }
     } catch (err) {
       console.error("Fetch Error:", err);
     } finally {
       setLoading(false);
+    }
+  }, [secureFetch]);
+
+  const publishAvailability = async (event) => {
+    event.preventDefault();
+    setSlotError('');
+    setSlotSubmitting(true);
+    try {
+      const response = await secureFetch(`${API_BASE_URL}/api/availability`, {
+        method: 'POST',
+        body: JSON.stringify({ date: slotDate, preferredTime: slotTime })
+      });
+      if (response && response.ok) {
+        setSlotDate('');
+        await fetchHelperData();
+      } else if (response) {
+        const result = await response.json();
+        setSlotError(result.message || 'Unable to publish availability.');
+      }
+    } catch (error) {
+      setSlotError('Unable to reach the server. Please try again.');
+    } finally {
+      setSlotSubmitting(false);
+    }
+  };
+
+  const removeAvailability = async (slotId) => {
+    setSlotError('');
+    try {
+      const response = await secureFetch(`${API_BASE_URL}/api/availability/${slotId}`, { method: 'DELETE' });
+      if (response && response.ok) {
+        setAvailabilitySlots((slots) => slots.filter((slot) => slot._id !== slotId));
+      } else if (response) {
+        const result = await response.json();
+        setSlotError(result.message || 'Unable to remove availability.');
+      }
+    } catch (error) {
+      setSlotError('Unable to reach the server. Please try again.');
     }
   };
 
@@ -70,7 +119,7 @@ export default function HelperDashboard() {
     
     setUser(parsedUser);
     fetchHelperData();
-  }, [router]);
+  }, [fetchHelperData, router]);
 
   const updateStatus = async (id, status) => {
     try {
@@ -144,13 +193,13 @@ export default function HelperDashboard() {
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 border-b border-slate-50 pb-8">
             <h2 className="text-2xl font-serif uppercase tracking-tight text-slate-950">Registry Terminal</h2>
             <div className="flex max-w-full overflow-x-auto bg-slate-50 p-1.5 rounded-2xl border border-slate-100 shadow-inner">
-              {['incoming', 'history', 'reviews', 'updates'].map((tab) => (
+              {['incoming', 'history', 'availability', 'reviews', 'updates'].map((tab) => (
                 <button 
                   key={tab} 
                   onClick={() => setActiveTab(tab)} 
                   className={`whitespace-nowrap px-4 md:px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-950 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
                 >
-                  {tab === 'incoming' ? 'Active Signals' : tab === 'history' ? 'Registry History' : tab === 'updates' ? `Updates${unreadCount ? ` (${unreadCount})` : ''}` : 'Performance Audits'}
+                  {tab === 'incoming' ? 'Active Signals' : tab === 'history' ? 'Registry History' : tab === 'availability' ? 'Availability' : tab === 'updates' ? `Updates${unreadCount ? ` (${unreadCount})` : ''}` : 'Performance Audits'}
                 </button>
               ))}
             </div>
@@ -220,6 +269,44 @@ export default function HelperDashboard() {
                 ) : (
                   <EmptySignal label="Registry Queue Empty" />
                 )}
+              </motion.div>
+            )}
+
+            {activeTab === 'availability' && (
+              <motion.div key="availability" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Publish visit windows</h3>
+                  <p className="mt-2 text-sm text-slate-500">Families can request only dates and time windows you publish. A window is reserved while its booking is active.</p>
+                </div>
+                <form onSubmit={publishAvailability} className="grid gap-4 rounded-2xl border border-slate-100 bg-[#FDFCF0] p-5 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                  <label className="space-y-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+                    Date
+                    <input type="date" required min={new Date().toISOString().slice(0, 10)} value={slotDate} onChange={(event) => setSlotDate(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900" />
+                  </label>
+                  <label className="space-y-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+                    Time window
+                    <select value={slotTime} onChange={(event) => setSlotTime(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900">
+                      {['Morning', 'Afternoon', 'Evening'].map((time) => <option key={time}>{time}</option>)}
+                    </select>
+                  </label>
+                  <button type="submit" disabled={slotSubmitting || !slotDate} className="rounded-xl bg-slate-950 px-5 py-3 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">
+                    {slotSubmitting ? 'Publishing…' : 'Add availability'}
+                  </button>
+                </form>
+                {slotError && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{slotError}</p>}
+                {availabilitySlots.length ? (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {availabilitySlots.map((slot) => (
+                      <article key={slot._id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-5">
+                        <div>
+                          <p className="font-bold text-slate-900">{new Date(slot.date).toLocaleDateString()}</p>
+                          <p className="mt-1 text-xs uppercase tracking-widest text-slate-500">{slot.preferredTime}{slot.booking ? ' · Reserved' : ' · Open'}</p>
+                        </div>
+                        {!slot.booking && <button type="button" onClick={() => removeAvailability(slot._id)} className="text-xs font-bold text-red-600 hover:text-red-800">Remove</button>}
+                      </article>
+                    ))}
+                  </div>
+                ) : <EmptySignal label="No Visit Windows Published" />}
               </motion.div>
             )}
 
