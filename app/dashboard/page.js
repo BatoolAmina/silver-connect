@@ -1,9 +1,10 @@
 'use client';
 import { API_BASE_URL } from '@/lib/api';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useLiveUpdates } from '@/lib/useLiveUpdates';
 import { 
   LogOut, CheckCircle, Mail, Calendar, 
   MapPin, Loader2, Star, MessageSquare, 
@@ -15,7 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function UserDashboard() {
   const router = useRouter();
-  const { secureFetch, logout } = useAuth();
+  const { secureFetch, logout, setUser: setAuthUser } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
@@ -28,7 +29,7 @@ export default function UserDashboard() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const bRes = await secureFetch(`${API_BASE_URL}/api/bookings/my-requests`);
       if (bRes && bRes.ok) setBookings(await bRes.json());
@@ -47,7 +48,37 @@ export default function UserDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [secureFetch]);
+
+  const refreshLiveUpdates = useCallback(async () => {
+    try {
+      const [bookingsResponse, notificationsResponse, profileResponse] = await Promise.all([
+        secureFetch(`${API_BASE_URL}/api/bookings/my-requests`),
+        secureFetch(`${API_BASE_URL}/api/notifications/my`),
+        secureFetch(`${API_BASE_URL}/api/auth/me`)
+      ]);
+
+      if (bookingsResponse?.ok) setBookings(await bookingsResponse.json());
+      if (notificationsResponse?.ok) {
+        const notificationData = await notificationsResponse.json();
+        setNotifications(notificationData.notifications || []);
+        setUnreadCount(notificationData.unreadCount || 0);
+      }
+      if (profileResponse?.ok) {
+        const currentUser = await profileResponse.json();
+        setUser(currentUser);
+        setAuthUser(currentUser);
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        if (currentUser.role === 'helper' && currentUser.isVerified) {
+          router.replace('/helper');
+        } else if (currentUser.role === 'admin') {
+          router.replace('/admin');
+        }
+      }
+    } catch (error) {
+      console.error('Unable to refresh live dashboard updates:', error);
+    }
+  }, [router, secureFetch, setAuthUser]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -63,7 +94,9 @@ export default function UserDashboard() {
       setUser(parsedUser);
       fetchData();
     }
-  }, [router]);
+  }, [fetchData, router]);
+
+  useLiveUpdates(refreshLiveUpdates, Boolean(user));
 
   const submitReview = async (e) => {
     e.preventDefault();
