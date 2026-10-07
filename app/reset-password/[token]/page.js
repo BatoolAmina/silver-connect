@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 import React, { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
@@ -15,9 +16,6 @@ export default function ResetPasswordPage({ params }) {
     
     const [status, setStatus] = useState({ type: '', text: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
