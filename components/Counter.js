@@ -10,7 +10,7 @@ export default function Counter({ value, duration = 2 }) {
   useEffect(() => {
     if (isInView) {
       let start = 0;
-      const end = parseInt(value.replace(/[^0-9]/g, ''));
+      const end = typeof value === 'number' ? value : parseInt(value.replace(/[^0-9]/g, ''), 10);
       const totalFrames = 60;
       const increment = end / totalFrames;
       const timer = setInterval(() => {
@@ -26,5 +26,5 @@ export default function Counter({ value, duration = 2 }) {
     }
   }, [isInView, value, duration]);
 
-  return <span ref={ref}>{count}{value.includes('+') ? '+' : ''}</span>;
+  return <span ref={ref}>{count}{typeof value === 'string' && value.includes('+') ? '+' : ''}</span>;
 }
