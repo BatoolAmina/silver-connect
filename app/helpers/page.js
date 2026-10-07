@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -16,9 +17,6 @@ export default function FindHelpers() {
   const [filteredHelpers, setFilteredHelpers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
   useEffect(() => {
     const fetchHelpers = async () => {
       try {
@@ -36,7 +34,7 @@ export default function FindHelpers() {
     };
 
     fetchHelpers();
-  }, [API_BASE_URL]);
+  }, []);
 
   useEffect(() => {
     const result = helpers.filter(h => 
