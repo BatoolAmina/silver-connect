@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,9 +18,6 @@ export default function HelperJoinPage() {
     const [status, setStatus] = useState({ type: '', text: '' });
     const [user, setUser] = useState(null);
     const [isCheckingRole, setIsCheckingRole] = useState(true);
-
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
     const [formData, setFormData] = useState({
         email: '', phone: '', specialty: '', experience: '', 
         summary: '', aadhar: '', workArea: '', resumeLink: '',
