@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/api';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -11,9 +12,6 @@ export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState({ type: '', text: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
