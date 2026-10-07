@@ -1,19 +1,35 @@
 'use client'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ShieldCheck, HeartPulse, Users, ShieldAlert, Zap, Globe, Star, Quote, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Counter from '@/components/Counter';
+import { API_BASE_URL } from '@/lib/api';
 
 export default function HomePage() {
+  const [metrics, setMetrics] = useState(null);
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true },
     transition: { duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }
   };
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/metrics`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('Unable to load project metrics');
+        setMetrics(await response.json());
+      } catch (error) {
+        console.error('Project metrics could not be loaded:', error);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
 
   return (
     <main className="bg-[#F9F6EE] font-sans selection:bg-slate-900 selection:text-white overflow-x-hidden">
@@ -83,14 +99,14 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             {[
-              { label: "Helper Network", value: "2500+" },
-              { label: "Active Families", value: "10k+" },
-              { label: "Safety Success", value: "100%" },
-              { label: "Cities Covered", value: "50+" }
+              { label: "Verified Helpers", value: metrics?.verifiedHelpers },
+              { label: "Registered Families", value: metrics?.registeredFamilies },
+              { label: "Completed Visits", value: metrics?.completedVisits },
+              { label: "Service Areas", value: metrics?.serviceAreas }
             ].map((stat, i) => (
               <div key={i}>
                 <h2 className="font-serif text-3xl md:text-5xl text-white mb-1">
-                  <Counter value={stat.value} />
+                  {typeof stat.value === 'number' ? <Counter value={stat.value} /> : '—'}
                 </h2>
                 <p className="text-slate-500 text-xs font-bold uppercase tracking-widest leading-none">{stat.label}</p>
               </div>
